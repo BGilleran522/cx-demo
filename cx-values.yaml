@@ -1,0 +1,116 @@
+## cx-values.yaml
+## Helm values for: coralogix/opentelemetry-integration
+## Cluster: coralogix-tam (GKE on GCP)
+## Namespace: coralogix
+##
+## Deploys the Coralogix OpenTelemetry integration which includes:
+##   - Cluster collector: k8s events, cluster metrics, API server metrics, OTLP receiver
+##   - Node agent (DaemonSet): log collection, host/kubelet metrics, span metrics, eBPF instrumentation
+##
+## The cluster collector's OTLP receiver (port 4317) acts as the central
+## ingestion point — the otel-demo collector forwards all telemetry here.
+##
+## Install:
+##   helm install otel-coralogix-integration coralogix/opentelemetry-integration \
+##     -n coralogix --create-namespace \
+##     --set global.clusterName=coralogix-tam \
+##     --set global.domain=cx498.coralogix.com \
+##     -f cx-values.yaml
+
+global:
+  domain: cx498.coralogix.com
+  clusterName: coralogix-tam
+
+opentelemetry-cluster-collector:
+  presets:
+    kubernetesEvents:
+      enabled: true
+    reduceResourceAttributes:
+      enabled: true
+    kubernetesResources:
+      enabled: true
+    fleetManagement:
+      enabled: true
+      supervisor:
+        enabled: false
+    clusterMetrics:
+      enabled: true
+    collectorMetrics:
+      enabled: true
+    kubernetesApiServerMetrics:
+      enabled: true
+      scrapeAll: false
+  distribution: gke
+  provider: gcp
+
+opentelemetry-agent:
+  presets:
+    hostEntityEvents:
+      enabled: true
+    fleetManagement:
+      enabled: true
+      supervisor:
+        enabled: false
+    spanMetrics:
+      enabled: true
+      histogramBuckets:
+        - 1ms
+        - 4ms
+        - 10ms
+        - 20ms
+        - 50ms
+        - 100ms
+        - 200ms
+        - 500ms
+        - 1s
+        - 2s
+        - 5s
+      transformStatements: []
+    headSampling:
+      enabled: true
+      percentage: 10.0
+    profilesCollection:
+      enabled: false
+    transactions:
+      enabled: true
+      waitDuration: '30'
+    logsCollection:
+      enabled: true
+      reduceLogAttributes:
+        enabled: true
+    kubeletMetrics:
+      enabled: true
+    collectorMetrics:
+      enabled: true
+    statsdReceiver:
+      enabled: true
+    hostMetrics:
+      enabled: true
+      process:
+        enabled: true
+    kubernetesExtraMetrics:
+      enabled: true
+      scrapeAll: false
+      perNode: true
+    reduceResourceAttributes:
+      enabled: true
+    coralogixExporter:
+      enabled: true
+      privateKey: ${env:CORALOGIX_PRIVATE_KEY}
+      pipelines:
+        - logs
+        - metrics
+        - traces
+  targetAllocator:
+    enabled: false
+  distribution: gke
+  provider: gcp
+
+coralogix-ebpf-profiler:
+  enabled: false
+
+opentelemetry-ebpf-instrumentation:
+  enabled: true
+
+coralogix-operator:
+  enabled: false

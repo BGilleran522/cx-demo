@@ -1,0 +1,105 @@
+## otel-demo-values.yaml
+## Helm values for: open-telemetry/opentelemetry-demo
+## Namespace: otel-demo
+##
+## The otel-demo deploys a microservices-based e-commerce application
+## instrumented with OpenTelemetry, generating logs, metrics, and traces.
+##
+## Architecture:
+##   otel-demo services --> otel-demo collector --> [OTLP gRPC] -->
+##   Coralogix K8s cluster collector (coralogix ns) --> Coralogix
+##
+## The demo's built-in collector forwards all telemetry to the Coralogix
+## cluster collector via OTLP gRPC on port 4317. This avoids needing to
+## configure Coralogix API keys in the demo namespace and leverages the
+## Coralogix collector's k8s metadata enrichment and processing pipelines.
+##
+## Note: The original config used a direct `coralogix` exporter, which
+## failed because the otel-demo collector image does not include it.
+## Switching to the standard `otlp` exporter resolved the issue.
+##
+## Install:
+##   helm install otel-demo open-telemetry/opentelemetry-demo \
+##     -n otel-demo --create-namespace \
+##     -f otel-demo-values.yaml
+
+opentelemetry-collector:
+  enabled: true
+  mode: deployment
+  replicaCount: 1
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      memory: 256Mi
+  config:
+    exporters:
+      ## Forward all telemetry to the Coralogix cluster collector via OTLP gRPC
+      otlp/coralogix:
+        endpoint: "coralogix-opentelemetry-collector.coralogix.svc.cluster.local:4317"
+        tls:
+          insecure: true  # cluster-internal traffic, no TLS needed
+    connectors:
+      spanmetrics:
+        histogram:
+          explicit:
+            buckets: [100ms, 250ms, 500ms, 1s, 2s]
+    service:
+      pipelines:
+        traces:
+          exporters: [otlp/coralogix, debug, spanmetrics]
+        metrics:
+          receivers: [otlp, spanmetrics]
+          exporters: [otlp/coralogix, debug]
+        logs:
+          exporters: [otlp/coralogix, debug]
+
+## ── Feature Flags (via flagd) ──────────────────────────────────────────
+## Enable failure injection to generate errors, latency, and resource
+## degradation across services. This enriches the observability dataset
+## for dashboards, alerts, and E2M validation.
+##
+## Flags:
+##   cartServiceFailure        → errors on EmptyCart calls
+##   productCatalogFailure     → errors on GetProduct for OLJCESPC7Z
+##   paymentServiceFailure     → errors on charge method (tanks checkout rate)
+##   recommendationServiceCacheFailure → memory leak via growing cache
+##   kafkaQueueProblems        → Kafka consumer lag spikes
+flagd:
+  config:
+    flags:
+      cartServiceFailure:
+        state: ENABLED
+        variants:
+          "on": true
+          "off": false
+        defaultVariant: "on"
+      productCatalogFailure:
+        state: ENABLED
+        variants:
+          "on": true
+          "off": false
+        defaultVariant: "on"
+      paymentServiceFailure:
+        state: ENABLED
+        variants:
+          "on": true
+          "off": false
+        defaultVariant: "on"
+      recommendationServiceCacheFailure:
+        state: ENABLED
+        variants:
+          "on": true
+          "off": false
+        defaultVariant: "on"
+      kafkaQueueProblems:
+        state: ENABLED
+        variants:
+          "on": true
+          "off": false
+        defaultVariant: "on"
+
+prometheus:
+  enabled: false
+grafana:
+  enabled: false

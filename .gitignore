@@ -1,0 +1,42 @@
+# Secrets & stack configs (contain encrypted API keys)
+Pulumi.*.yaml
+!Pulumi.yaml
+
+# Generated Pulumi provider SDK (large, reproducible)
+coralogix-pulumi/sdks/
+
+# Compiled binaries
+coralogix-setup/coralogix-setup
+
+# Documents (submitted separately, not source code)
+*.pdf
+*.docx
+
+# Draft files (not part of the deliverable)
+email-draft.md
+dashboard-wireframes.jsx
+
+# Temp files
+zi92XrML
+
+# OS artifacts
+.DS_Store
+
+# Editor / tool configs
+.claude/
+.vscode/
+.idea/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+
+# Environment files
+.env
+.env.*
+*.key
+*.pem
+
+# Node (if any tooling is added)
+node_modules/

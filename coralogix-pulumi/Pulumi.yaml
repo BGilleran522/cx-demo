@@ -1,0 +1,9 @@
+name: coralogix-otel-demo
+runtime: go
+description: Coralogix setup for OTel Demo — parsing rules, alerts, and dashboards
+config:
+  coralogix:env:
+    value: EU1
+  coralogix:apiKey:
+    secret: true
+    value: placeholder
