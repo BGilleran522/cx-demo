@@ -140,9 +140,6 @@ This deploys:
 │   ├── Pulumi.yaml                    # Pulumi project config
 │   ├── products.csv                   # Product lookup table (10 items)
 │   └── sdks/                          # Generated Coralogix Pulumi provider SDK
-├── dashboard-wireframes.jsx           # React wireframe mockups
-├── email-draft.md                     # Progress update email
-├── TAM Task - Technical assignment.pdf # Original assignment document
 ```
 
 ## Feature Flags
